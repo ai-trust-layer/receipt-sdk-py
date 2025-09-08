@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "receipt-verify-py"
+version = "0.1.0"
+description = "Python SDK for verifying AI receipts (offline-first)"
+readme = "README.md"
+requires-python = ">=3.9"
+license = "Apache-2.0"
+dependencies = ["jsonschema>=4.21.0"]
+
+[project.scripts]
+receipt-verify = "receipt_verify.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["receipt_verify*"]
+
+[tool.setuptools.package-data]
+receipt_verify = ["schema/*.json"]
