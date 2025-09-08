@@ -1,5 +1,5 @@
 {
-  "id":"urn:receipt:ok-001",
+  "id":"urn:receipt:ok-py-001",
   "issued_at":"2025-09-08T10:00:00Z",
   "model_version":"vendor:model@2025-09-01",
   "policy_version":"trust:standard@1.0",

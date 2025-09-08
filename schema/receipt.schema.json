@@ -2,11 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "AI Receipt v1",
   "type": "object",
-  "required": [
-    "id","issued_at","model_version","policy_version",
-    "input_hash","output_hash","timestamp","proof_refs",
-    "trustscore","signature"
-  ],
+  "required": ["id","issued_at","model_version","policy_version","input_hash","output_hash","timestamp","proof_refs","trustscore","signature"],
   "properties": {
     "id": {"type":"string","minLength":1},
     "issued_at": {"type":"string","format":"date-time"},
@@ -18,16 +14,16 @@
     "timestamp": {"type":"string","format":"date-time"},
     "proof_refs": {
       "type":"array","minItems":1,
-      "items":{
+      "items": {
         "type":"object",
-        "required":["type","network","tx"],
-        "properties":{
-          "type":{"type":"string","enum":["ANCHOR","RE-ANCHOR"]},
-          "network":{"type":"string","minLength":1},
-          "tx":{"type":"string","minLength":1},
-          "finality_level":{"type":"string","enum":["soft","firm","final"]}
+        "required": ["type","network","tx"],
+        "properties": {
+          "type": {"type":"string","enum":["ANCHOR","RE-ANCHOR"]},
+          "network": {"type":"string","minLength":1},
+          "tx": {"type":"string","minLength":1},
+          "finality_level": {"type":"string","enum":["soft","firm","final"]}
         },
-        "additionalProperties":false
+        "additionalProperties": false
       }
     },
     "trustscore": {"type":"integer","minimum":0,"maximum":100},
