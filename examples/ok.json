@@ -1,0 +1,13 @@
+{
+  "id":"urn:receipt:ok-001",
+  "issued_at":"2025-09-08T10:00:00Z",
+  "model_version":"vendor:model@2025-09-01",
+  "policy_version":"trust:standard@1.0",
+  "policy_hash":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "input_hash":"sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "output_hash":"sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "timestamp":"2025-09-08T10:00:05Z",
+  "proof_refs":[{"type":"ANCHOR","network":"sepolia","tx":"0xok001","finality_level":"firm"}],
+  "trustscore":95,
+  "signature":"did:web:example.org#k1 sig..."
+}
