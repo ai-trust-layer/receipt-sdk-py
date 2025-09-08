@@ -3,7 +3,7 @@ import json, hashlib, pathlib
 from typing import Any, Dict, List, Optional
 from jsonschema import Draft202012Validator
 
-SCHEMA_PATH = pathlib.Path(__file__).resolve().parent.parent / "schema" / "receipt.schema.json"
+SCHEMA_PATH = pathlib.Path(__file__).resolve().parent / "schema" / "receipt.schema.json"
 SCHEMA = json.loads(SCHEMA_PATH.read_text())
 
 def validate_schema(receipt: Dict[str, Any]) -> Dict[str, Any]:
