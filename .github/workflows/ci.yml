@@ -1,19 +1,49 @@
 name: CI
 on: [push, pull_request, workflow_dispatch]
 jobs:
-  sanity:
+  test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix: { python-version: ["3.11"] }  # simplu la început; extindem după ce e verde
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
-        with: { python-version: '3.11' }
-      - run: python -V
+        with: { python-version: ${{ matrix.python-version }} }
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install 'jsonschema==4.*' 'click==8.*'
+
       - name: Import sanity
         run: |
           python - <<'PY'
           import sys, os
-          print("CWD", os.getcwd())
           sys.path.insert(0, os.getcwd())
           import receipt_verify
           print("IMPORT_OK", receipt_verify.__file__)
           PY
+
+      - name: Prepare fixtures
+        run: |
+          mkdir -p tmp
+          curl -sSL -o tmp/schema.json https://raw.githubusercontent.com/ai-trust-layer/receipt-spec/v1.0.3/schema/receipt.schema.json
+          curl -sSL -o tmp/ok.json     https://raw.githubusercontent.com/ai-trust-layer/receipt-spec/v1.0.3/examples/ok.json
+          echo -n "hello input"  > tmp/in.txt
+          echo -n "hello output" > tmp/out.txt
+
+      - name: Inject hashes
+        run: |
+          python - <<'PY'
+          import json,hashlib
+          r=json.load(open("tmp/ok.json"))
+          ih=hashlib.sha256(open("tmp/in.txt","rb").read()).hexdigest()
+          oh=hashlib.sha256(open("tmp/out.txt","rb").read()).hexdigest()
+          r["input_hash"]=f"sha256:{ih}"; r["output_hash"]=f"sha256:{oh}"
+          json.dump(r, open("tmp/ok-local.json","w"))
+          PY
+
+      - name: Verify receipt
+        env: { PYTHONPATH: . }
+        run: python -m receipt_verify verify tmp/ok-local.json --schema tmp/schema.json --input tmp/in.txt --output tmp/out.txt
