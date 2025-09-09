@@ -15,7 +15,8 @@ jobs:
       - run: curl -L -o tmp/schema.json https://raw.githubusercontent.com/ai-trust-layer/receipt-spec/v1.0.3/schema/receipt.schema.json
       - run: curl -L -o tmp/ok.json https://raw.githubusercontent.com/ai-trust-layer/receipt-spec/v1.0.3/examples/ok.json
       - run: echo "hello input" > tmp/in.txt && echo "hello output" > tmp/out.txt
-      - run: |
+      - name: Inject hashes
+        run: |
           python - <<'PY'
           import json,hashlib
           r=json.load(open("tmp/ok.json"))
@@ -24,4 +25,13 @@ jobs:
           r["input_hash"]=f"sha256:{ih}"; r["output_hash"]=f"sha256:{oh}"
           json.dump(r, open("tmp/ok-local.json","w"))
           PY
-      - run: python -m receipt_verify verify tmp/ok-local.json --schema tmp/schema.json --input tmp/in.txt --output tmp/out.txt
+      - name: Import sanity
+        run: python - <<'PY'
+          import sys, os
+          sys.path.insert(0, os.getcwd())
+          import receipt_verify
+          print("IMPORT_OK", receipt_verify.__file__)
+          PY
+      - name: Verify
+        env: { PYTHONPATH: . }
+        run: python -m receipt_verify verify tmp/ok-local.json --schema tmp/schema.json --input tmp/in.txt --output tmp/out.txt
