@@ -1,0 +1,15 @@
+name: CI-Ed25519-Real-Py
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+jobs:
+  ed25519-real-py:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: python -m pip install --upgrade pip pynacl
+      - run: python scripts/make_signed_ed25519.py /tmp/r.json
+      - run: python scripts/verify_ed25519_real.py /tmp/r.json
