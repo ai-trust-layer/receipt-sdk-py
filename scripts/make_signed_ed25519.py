@@ -1,13 +1,9 @@
-import sys, json, base64, os
+import sys, json, base64
 from nacl.signing import SigningKey
 from common_canonical import canonicalize_subset_bytes
-
-# cheie demo deterministă (NU pt. producție)
 SEED = bytes([1]*32)
-
 def main(out_path):
-    sk = SigningKey(SEED)
-    vk = sk.verify_key
+    sk = SigningKey(SEED); vk = sk.verify_key
     r = {
         "id":"rec_py_interop",
         "issued_at":"2025-09-10T12:00:00Z",
@@ -25,8 +21,5 @@ def main(out_path):
     }
     with open(out_path,"w",encoding="utf-8") as f:
         json.dump(r,f,ensure_ascii=False,separators=(',',':'))
-
 if __name__ == "__main__":
-    out = sys.argv[1]
-    main(out)
-    print(f"Wrote {out}")
+    main(sys.argv[1]); print(f"Wrote {sys.argv[1]}")
