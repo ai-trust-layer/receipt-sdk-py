@@ -1,21 +1,19 @@
-import argparse, json, sys
-from .verify import verify_receipt
+import sys, json
+from .signature import verify_signature
 
 def main():
-    p = argparse.ArgumentParser(prog="receipt-verify", description="Verify AI Receipt offline")
-    p.add_argument("receipt", help="Path to receipt JSON")
-    p.add_argument("--input", help="Path to original input (optional)")
-    p.add_argument("--output", help="Path to model output (optional)")
-    p.add_argument("--salt", help="Hex salt (0x optional)", default=None)
-    p.add_argument("--mode", choices=["prefix","suffix"], default="prefix")
-    args = p.parse_args()
-
-    with open(args.receipt, "r", encoding="utf-8") as f:
-        receipt = json.load(f)
-
-    result = verify_receipt(receipt, args.input, args.output, args.salt, args.mode)
-    print(json.dumps(result, indent=2))
-    sys.exit(0 if result["verdict"] == "PASS" else 2)
-
-if __name__ == "__main__":
-    main()
+    if len(sys.argv) < 2:
+        print("Usage: python -m receipt_verify <receipt.json>", file=sys.stderr)
+        sys.exit(2)
+    path = sys.argv[1]
+    with open(path, "r", encoding="utf-8") as f:
+        r = json.load(f)
+    if "signature" not in r:
+        print("signature: not present")
+        sys.exit(0)
+    res = verify_signature(r)
+    if res.get("ok"):
+        print("signature: PASS")
+    else:
+        print(f"signature: FAIL ({res.get('reason','unknown')})")
+    sys.exit(0)

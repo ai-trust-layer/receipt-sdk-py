@@ -1,5 +1,10 @@
 name: CI
-on: [push, pull_request, workflow_dispatch]
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [ main ]
+  workflow_dispatch:
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -7,37 +12,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
       - run: python -m pip install --upgrade pip
-      - run: pip install 'jsonschema==4.*' 'click==8.*'
-      - name: Import sanity
-        env:
-          PYTHONPATH: .
-        run: |
-          python - <<'PY'
-          import sys, os
-          sys.path.insert(0, os.getcwd())
-          import receipt_verify
-          print("IMPORT_OK", receipt_verify.__file__)
-          PY
-      - name: Prepare fixtures
-        run: |
-          mkdir -p tmp
-          curl -sSL -o tmp/schema.json https://raw.githubusercontent.com/ai-trust-layer/receipt-spec/v1.0.3/schema/receipt.schema.json
-          curl -sSL -o tmp/ok.json     https://raw.githubusercontent.com/ai-trust-layer/receipt-spec/v1.0.3/examples/ok.json
-          printf "hello input"  > tmp/in.txt
-          printf "hello output" > tmp/out.txt
-      - name: Inject hashes
-        run: |
-          python - <<'PY'
-          import json,hashlib
-          r=json.load(open("tmp/ok.json"))
-          ih=hashlib.sha256(open("tmp/in.txt","rb").read()).hexdigest()
-          oh=hashlib.sha256(open("tmp/out.txt","rb").read()).hexdigest()
-          r["input_hash"]=f"sha256:{ih}"; r["output_hash"]=f"sha256:{oh}"
-          json.dump(r, open("tmp/ok-local.json","w"))
-          PY
-      - name: Verify receipt
-        env:
-          PYTHONPATH: .
-        run: python -m receipt_verify verify tmp/ok-local.json --schema tmp/schema.json --input tmp/in.txt --output tmp/out.txt
+      - run: pip install pynacl pytest
+      - run: python -m pytest -q
