@@ -1,34 +1,28 @@
-import json, base64, sys
+import sys, json, base64
 from nacl.signing import VerifyKey
+from nacl.exceptions import BadSignatureError
+from common_canonical import canonicalize_subset_bytes
 
-SUBSET_KEYS = ["id","issued_at","input_hash","output_hash","model_version","policy_version"]
-
-def canonicalize_subset(r):
-    obj = {k: r[k] for k in SUBSET_KEYS}
-    return json.dumps(obj, separators=(',', ':'), ensure_ascii=False)
-
-def verify_receipt(path):
-    with open(path, 'r', encoding='utf-8') as f:
-        r = json.load(f)
-    sig = r.get('signature')
-    if not sig:
-        print("signature: FAIL"); print("reason: not_provided"); sys.exit(1)
-    if str(sig.get('alg','')).lower() != 'ed25519':
-        print("signature: FAIL"); print("reason: alg_unsupported"); sys.exit(1)
-    kid = sig.get('kid','')
-    if not kid.startswith('ed25519:'):
-        print("signature: FAIL"); print("reason: kid_format"); sys.exit(1)
-    pub_hex = kid.split(':',1)[1]
-    msg = canonicalize_subset(r).encode('utf-8')
-    sig_bytes = base64.b64decode(sig.get('sig',''))
+def verify_signature(receipt: dict):
+    s = receipt.get("signature")
+    if not s:
+        return False, "not_provided"
+    if s.get("alg") != "ed25519" or not s.get("sig") or not str(s.get("kid","")).startswith("ed25519:"):
+        return False, "unsupported_alg"
+    pub_hex = s["kid"].split(":",1)[1]
+    pub = VerifyKey(bytes.fromhex(pub_hex))
+    sig = base64.b64decode(s["sig"])
+    msg = canonicalize_subset_bytes(receipt)
     try:
-        VerifyKey(bytes.fromhex(pub_hex)).verify(msg, sig_bytes)
-        print("signature: PASS")
-    except Exception:
-        print("signature: FAIL"); print("reason: bad_signature"); sys.exit(1)
+        pub.verify(msg, sig)
+        return True, "Signature valid"
+    except BadSignatureError:
+        return False, "bad_signature"
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("usage: python scripts/verify_ed25519_real.py <receipt.json>")
-        sys.exit(2)
-    verify_receipt(sys.argv[1])
+    p = sys.argv[1]
+    with open(p, "r", encoding="utf-8") as f:
+        r = json.load(f)
+    ok, reason = verify_signature(r)
+    print(f"signature: {'PASS' if ok else 'FAIL'} ({reason})")
+    sys.exit(0 if ok else 1)
