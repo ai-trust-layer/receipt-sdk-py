@@ -7,3 +7,4 @@ job.log
 __pycache__/
 build/
 dist/
+.env
